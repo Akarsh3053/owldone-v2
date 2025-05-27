@@ -1,13 +1,16 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+
+const DashboardWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen w-full bg-gray-50 text-gray-900">
-      {/* Sidebar */}
+      <Sidebar />
       <main className={"flex w-full flex-col bg-gray-50 dark:bg-dark-bg md:pl-64"}>
-        {/* Nav goes here later : *_* */}
+        <Navbar />
         {children}
       </main>
     </div>
@@ -24,4 +27,4 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 //   );
 // };
 
-// export default DashboardWrapper;
+export default DashboardWrapper;
