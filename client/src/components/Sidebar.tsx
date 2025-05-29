@@ -2,7 +2,27 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/store";
-import { AlertOctagonIcon, AlertTriangle, CalendarRange, ChevronDown, ChevronUp, ClockAlertIcon, HomeIcon, ListEnd, LockIcon, LucideIcon, Search, SettingsIcon, ShieldAlertIcon, User2Icon, Users2Icon, X } from "lucide-react";
+import { useGetProjectsQuery } from "@/store/api";
+import {
+    AlertOctagonIcon,
+    AlertTriangle,
+    Briefcase,
+    CalendarRange,
+    ChevronDown,
+    ChevronUp,
+    ClockAlertIcon,
+    HomeIcon,
+    ListEnd,
+    LockIcon,
+    LucideIcon,
+    Search,
+    SettingsIcon,
+    ShieldAlertIcon,
+    User2Icon,
+    Users2Icon,
+    X,
+} from "lucide-react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,6 +39,7 @@ const Sidebar = () => {
     const [showProjects, setShowProjects] = useState(true);
     const [showPriority, setShowPriority] = useState(true);
 
+    const { data: projects } = useGetProjectsQuery();
     const dispatch = useAppDispatch();
     const isSidebarCollapsed = useAppSelector((state) => state.global.isSidebarCollapsed);
 
@@ -80,7 +101,14 @@ const Sidebar = () => {
                     )}
                 </button>
 
-                {/* Query Data goes here */}
+                {showProjects && projects?.map((project) => (
+                    <SidebarLink
+                        key={project.id}
+                        icon={Briefcase}
+                        label={project.name}
+                        href={`/projects/${project.id}`}
+                    />
+                ))}
 
                 <button
                     onClick={() => setShowPriority((prev) => !prev)}
