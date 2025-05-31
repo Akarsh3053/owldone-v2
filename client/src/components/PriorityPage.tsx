@@ -1,0 +1,175 @@
+"use client";
+
+import { useAppSelector } from "@/app/redux";
+import Header from "@/components/Header";
+import AddTaskModal from "@/components/AddTaskModal";
+import TaskCard from "@/components/TaskCard";
+import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import {
+    Priority,
+    Task,
+    // useGetAuthUserQuery,
+    useGetTasksByUserQuery,
+} from "@/store/api";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import React, { useState } from "react";
+
+type Props = {
+    priority: Priority;
+};
+
+const columns: GridColDef[] = [
+    {
+        field: "title",
+        headerName: "Title",
+        width: 100,
+    },
+    {
+        field: "description",
+        headerName: "Description",
+        width: 200,
+    },
+    {
+        field: "status",
+        headerName: "Status",
+        width: 130,
+        renderCell: (params) => (
+            <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
+                {params.value}
+            </span>
+        ),
+    },
+    {
+        field: "priority",
+        headerName: "Priority",
+        width: 75,
+    },
+    {
+        field: "tags",
+        headerName: "Tags",
+        width: 130,
+    },
+    {
+        field: "startDate",
+        headerName: "Start Date",
+        width: 130,
+    },
+    {
+        field: "dueDate",
+        headerName: "Due Date",
+        width: 130,
+    },
+    {
+        field: "author",
+        headerName: "Author",
+        width: 150,
+        renderCell: (params) => params.value.username || "Unknown",
+    },
+    {
+        field: "assignee",
+        headerName: "Assignee",
+        width: 150,
+        renderCell: (params) => params.value.username || "Unassigned",
+    },
+];
+
+const PriorityPage = ({ priority }: Props) => {
+    const [view, setView] = useState("list");
+    const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
+
+    // const { data: currentUser } = useGetAuthUserQuery({});
+    const userId = 1 //currentUser?.userDetails?.userId ?? null;
+    const {
+        data: tasks,
+        isLoading,
+        isError: isTasksError,
+    } = useGetTasksByUserQuery(userId || 0, {
+        skip: userId === null,
+    });
+
+    const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+
+    const filteredTasks = tasks?.filter(
+        (task: Task) => task.priority === priority,
+    );
+
+    if (isTasksError || !tasks) return <div>Error fetching tasks</div>;
+
+    const NoTasksMessage = () => (
+        <div className="flex flex-col items-center justify-center py-16">
+            <div className={`text-6xl mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>
+                📋
+            </div>
+            <h3 className={`text-xl font-semibold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                No tasks found!
+            </h3>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                There are no tasks with {priority.toLowerCase()} priority at the moment.
+            </p>
+        </div>
+    );
+
+    return (
+        <div className="m-5 p-4">
+            <AddTaskModal
+                isOpen={isModalNewTaskOpen}
+                onClose={() => setIsModalNewTaskOpen(false)}
+            />
+            <Header
+                name="Priority Page"
+                buttonComponent={
+                    <button
+                        className="mr-3 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                        onClick={() => setIsModalNewTaskOpen(true)}
+                    >
+                        Add Task
+                    </button>
+                }
+            />
+            <div className="mb-4 flex justify-start">
+                <button
+                    className={`px-4 py-2 ${view === "list" ? "bg-gray-300" : "bg-white"
+                        } rounded-l`}
+                    onClick={() => setView("list")}
+                >
+                    List
+                </button>
+                <button
+                    className={`px-4 py-2 ${view === "table" ? "bg-gray-300" : "bg-white"
+                        } rounded-l`}
+                    onClick={() => setView("table")}
+                >
+                    Table
+                </button>
+            </div>
+            {isLoading ? (
+                <div>Loading tasks...</div>
+            ) : filteredTasks && filteredTasks.length > 0 ? (
+                view === "list" ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        {filteredTasks.map((task: Task) => (
+                            <TaskCard key={task.id} task={task} />
+                        ))}
+                    </div>
+                ) : (
+                    view === "table" && (
+                        <div className="z-0 w-full">
+                            <DataGrid
+                                rows={filteredTasks}
+                                columns={columns}
+                                checkboxSelection
+                                getRowId={(row) => row.id}
+                                className={dataGridClassNames}
+                                sx={dataGridSxStyles(isDarkMode)}
+                            />
+                        </div>
+                    )
+                )
+            ) : (
+                <NoTasksMessage />
+            )}
+        </div>
+    );
+};
+
+export default PriorityPage;
